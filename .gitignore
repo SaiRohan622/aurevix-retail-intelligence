@@ -1,0 +1,69 @@
+# Environment & Secrets
+.env
+.env.local
+*.pem
+*.key
+*.secret
+
+# Python Bytecode & Caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Data Files & Storage (Never commit raw/large datasets or checkpoints)
+data/raw/*
+!data/raw/.gitkeep
+data/bronze/*
+!data/bronze/.gitkeep
+data/silver/*
+!data/silver/.gitkeep
+data/gold/*
+!data/gold/.gitkeep
+data/quarantine/*
+!data/quarantine/.gitkeep
+data/monitoring/*
+!data/monitoring/.gitkeep
+data/checkpoints/*
+!data/checkpoints/.gitkeep
+*.parquet
+*.csv
+*.gz
+*.tar
+*.zip
+
+# Spark & Hadoop Local Caches
+metastore_db/
+derby.log
+checkpoint/
+spark-warehouse/
+.sparkStaging/
+
+# dbt Artifacts
+dbt_aurevix/target/
+dbt_aurevix/dbt_packages/
+dbt_aurevix/logs/
+
+# Airflow Local Runtime
+airflow/logs/
+airflow/airflow.db
+airflow/airflow.cfg
+airflow/webserver_config.py
+
+# OS / Editor Artifacts
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo

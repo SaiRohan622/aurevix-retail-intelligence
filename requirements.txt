@@ -1,0 +1,12 @@
+# ==============================================================================
+# AUREVIX — Master Dependency Manifest
+# Target Runtime: Python 3.12.x
+# Host Python: 3.14.4 (Host tools) | Project Locked Python: 3.12.x (Virtualenv / Containers)
+# ==============================================================================
+
+-r requirements/base.txt
+-r requirements/spark.txt
+-r requirements/streaming.txt
+-r requirements/dbt.txt
+-r requirements/dashboard.txt
+-r requirements/dev.txt

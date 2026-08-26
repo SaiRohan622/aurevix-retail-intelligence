@@ -1,0 +1,13 @@
+dbt_aurevix:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('POSTGRES_HOST', 'localhost') }}"
+      user: "{{ env_var('POSTGRES_USER', 'aurevix_admin') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD', 'aurevix_secure_password_change_me') }}"
+      port: "{{ env_var('POSTGRES_PORT', '5432') | int }}"
+      dbname: "{{ env_var('POSTGRES_DB', 'aurevix_dw') }}"
+      schema: analytics
+      threads: 4
+      keepalives_idle: 0

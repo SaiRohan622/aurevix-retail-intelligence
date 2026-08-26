@@ -1,0 +1,114 @@
+/* AUREVIX Enterprise Dark Theme & Styling */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+    --bg-primary: #0b0f19;
+    --bg-card: #111827;
+    --bg-card-hover: #1f2937;
+    --text-main: #f3f4f6;
+    --text-muted: #9ca3af;
+    --accent-blue: #3b82f6;
+    --accent-indigo: #6366f1;
+    --accent-emerald: #10b981;
+    --accent-amber: #f59e0b;
+    --accent-rose: #f43f5e;
+    --border-color: #374151;
+}
+
+body, .stApp {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-main);
+}
+
+/* Custom KPI Cards */
+.kpi-container {
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(145deg, #111827, #1e293b);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.kpi-container:hover {
+    border-color: var(--accent-blue);
+    transform: translateY(-2px);
+}
+
+.kpi-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.kpi-value {
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+}
+
+.kpi-delta {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.kpi-delta.positive {
+    color: var(--accent-emerald);
+}
+
+.kpi-delta.neutral {
+    color: var(--text-muted);
+}
+
+/* Streamlit Container / Metric tweaks */
+div[data-testid="stMetricValue"] {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+}
+
+/* Code and mono blocks */
+code, pre {
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* Live Pulse Badge */
+.live-pulse {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #10b981;
+}
+
+/* Section Header */
+.section-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 8px;
+    margin-top: 24px;
+    margin-bottom: 16px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-main);
+}

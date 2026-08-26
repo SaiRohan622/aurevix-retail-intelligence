@@ -1,0 +1,50 @@
+name: AUREVIX Continuous Integration (CI)
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  lint-and-validate:
+    name: Code Quality & Syntax Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate Configuration Template
+        run: |
+          test -f .env.example
+          test -f Dockerfile
+          test -f docker-compose.yml
+
+  test-suite:
+    name: Automated Regression Suite (45+ Tests)
+    runs-on: ubuntu-latest
+    needs: lint-and-validate
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Platform Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pyarrow pyspark==4.2.0 kafka-python-ng dbt-core dbt-postgres psycopg2-binary streamlit plotly pandas
+
+      - name: Validate dbt Models & Compilation
+        run: |
+          dbt parse --project-dir dbt_aurevix --profiles-dir dbt_aurevix
+
+      - name: Execute Full Unit & Integration Test Suite
+        run: |
+          pytest tests/unit/ tests/integration/ -v

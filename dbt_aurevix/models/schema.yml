@@ -1,0 +1,32 @@
+version: 2
+
+sources:
+  - name: gold
+    schema: gold
+    tables:
+      - name: fact_sales
+      - name: dim_customer
+      - name: dim_product
+      - name: dim_seller
+      - name: dim_location
+      - name: dim_date
+
+models:
+  - name: stg_order_items
+    columns:
+      - name: sales_fact_key
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        tests:
+          - not_null
+      - name: order_item_id
+        tests:
+          - not_null
+
+  - name: mart_sales_summary
+    columns:
+      - name: total_gross_revenue
+        tests:
+          - not_null
