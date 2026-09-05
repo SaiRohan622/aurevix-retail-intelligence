@@ -14,14 +14,14 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-# Ensure HADOOP_HOME is configured for native Windows I/O
+# Ensure HADOOP_HOME is configured for native Windows I/O (Windows only)
 hadoop_dir = PROJECT_ROOT / "infrastructure" / "hadoop"
-if hadoop_dir.exists():
+if sys.platform == "win32" and hadoop_dir.exists():
     os.environ["HADOOP_HOME"] = str(hadoop_dir.resolve())
     os.environ["hadoop.home.dir"] = str(hadoop_dir.resolve())
     bin_dir = str((hadoop_dir / "bin").resolve())
     if bin_dir not in os.environ.get("PATH", ""):
-        os.environ["PATH"] = bin_dir + ";" + os.environ.get("PATH", "")
+        os.environ["PATH"] = bin_dir + os.pathsep + os.environ.get("PATH", "")
 
 import json
 import time

@@ -66,4 +66,4 @@ jobs:
 
       - name: Execute Full Unit & Integration Test Suite
         run: |
-          pytest tests/unit/ tests/integration/ -v
+          python -m pytest tests/unit/ tests/integration/ -v
