@@ -1,0 +1,23 @@
+# ==============================================================================
+# AUREVIX — Gitleaks Security Configuration
+# Extends standard rules and allowlists synthetic unit test credential fixtures.
+# ==============================================================================
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Synthetic credential sanitization fixtures and test assertions"
+paths = [
+    '''tests/unit/test_security_hardening_phase1\.py''',
+    '''tests/unit/test_security_hardening_phase7\.py''',
+    '''tests/.*''',
+]
+stopwords = [
+    "SuperSecretPass123",
+    "sk-1234567890abcdef",
+    "sk-secret-9999",
+    "super_secret_password",
+    "secret123",
+    "AIzaSyA1234567890abcdef"
+]
