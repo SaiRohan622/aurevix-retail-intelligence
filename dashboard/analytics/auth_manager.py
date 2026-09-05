@@ -135,6 +135,54 @@ def normalize_email(email: str) -> str:
 class UserStore:
     """Thread-safe persistent store for user accounts and rate-limiting."""
 
+    _secrets_bootstrapped: bool = False
+
+    @classmethod
+    def bootstrap_admin_from_secrets(cls) -> None:
+        """
+        Safely provisions an initial administrator account from Streamlit secrets
+        (ADMIN_EMAIL and ADMIN_PASSWORD) if explicitly configured in Streamlit Cloud.
+        If the account already exists, it is not recreated or overwritten.
+        If no secrets are defined, this is a graceful no-op.
+        """
+        if cls._secrets_bootstrapped:
+            return
+        cls._secrets_bootstrapped = True
+
+        try:
+            if not hasattr(st, "secrets"):
+                return
+            admin_email = st.secrets.get("ADMIN_EMAIL")
+            admin_password = st.secrets.get("ADMIN_PASSWORD")
+            if not admin_email or not admin_password:
+                return
+
+            admin_email_str = str(admin_email).strip()
+            admin_password_str = str(admin_password)
+
+            norm_email = normalize_email(admin_email_str)
+            if not norm_email:
+                return
+
+            users = cls._load_users()
+            if norm_email in users:
+                return
+
+            is_valid, msg = validate_password_policy(admin_password_str)
+            if not is_valid:
+                logger.warning(f"Admin secrets bootstrap skipped: {msg}")
+                return
+
+            cls.create_user(
+                email=admin_email_str,
+                password=admin_password_str,
+                display_name="Cloud Administrator",
+                role="ADMIN"
+            )
+            logger.info("Initial cloud administrator account provisioned from secrets configuration.")
+        except Exception as e:
+            logger.debug(f"Admin secrets bootstrap check: {e}")
+
     @classmethod
     def _ensure_storage(cls) -> None:
         AUTH_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
@@ -412,7 +460,13 @@ class AuthManager:
     DEFAULT_TEST_USER_ID = "test_default_user"
 
     @classmethod
+    def bootstrap_admin_from_secrets(cls) -> None:
+        """Bootstraps admin account from Streamlit secrets if configured."""
+        UserStore.bootstrap_admin_from_secrets()
+
+    @classmethod
     def initialize_session(cls) -> None:
+        UserStore.bootstrap_admin_from_secrets()
         if _AUTH_NS not in st.session_state:
             st.session_state[_AUTH_NS] = {
                 "authenticated": False,

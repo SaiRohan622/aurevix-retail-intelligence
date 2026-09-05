@@ -25,6 +25,7 @@ class ProductionSettings:
         self.ENV: str = os.getenv("AUREVIX_ENV", "development").lower()
         self.IS_PRODUCTION: bool = self.ENV == "production"
         self.IS_TESTING: bool = self.ENV == "testing"
+        self.IS_CLOUD: bool = self.ENV in ("cloud", "demo")
 
         # Workspace paths
         self.WORKSPACE_ROOT: Path = Path(os.getenv("AUREVIX_WORKSPACE", str(PROJECT_ROOT)))
@@ -113,6 +114,7 @@ class ProductionSettings:
             "ENV": self.ENV,
             "IS_PRODUCTION": self.IS_PRODUCTION,
             "IS_TESTING": self.IS_TESTING,
+            "IS_CLOUD": self.IS_CLOUD,
             "SCHEMA_VERSION": self.SCHEMA_VERSION,
             "POSTGRES_HOST": self.POSTGRES_HOST,
             "POSTGRES_PORT": self.POSTGRES_PORT,
