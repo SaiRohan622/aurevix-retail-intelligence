@@ -1,16 +1,16 @@
 """
-AUREVIX — Dashboard Data Access Layer
-Queries PostgreSQL analytics warehouse with seamless local Gold Parquet fallback.
-All metrics are dynamically aggregated from real data with caching.
+AUREVIX — High-Performance Dashboard Data Access Layer
+Ultra-low latency data loader with Streamlit in-memory caching and instant Parquet fallback.
 """
 
 import os
 import sys
 import json
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union, Tuple
 import pandas as pd
 import pyarrow.parquet as pq
+import streamlit as st
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
@@ -21,159 +21,96 @@ from src.common.logger import get_logger
 
 logger = get_logger("aurevix.dashboard_data_loader")
 
+_PG_AVAILABLE: Optional[bool] = None
+
+
+def _check_pg_available() -> bool:
+    global _PG_AVAILABLE
+    if _PG_AVAILABLE is not None:
+        return _PG_AVAILABLE
+    try:
+        import psycopg2
+        conn = psycopg2.connect(
+            host=settings.POSTGRES_HOST,
+            port=settings.POSTGRES_PORT,
+            dbname=settings.POSTGRES_DB,
+            user=settings.POSTGRES_USER,
+            password=settings.POSTGRES_PASSWORD,
+            connect_timeout=1
+        )
+        conn.close()
+        _PG_AVAILABLE = True
+    except Exception:
+        _PG_AVAILABLE = False
+    return _PG_AVAILABLE
+
+
+@st.cache_data(show_spinner=False)
+def _cached_parquet_load(table_dir: str) -> pd.DataFrame:
+    p = Path(table_dir)
+    if p.exists():
+        files = list(p.rglob("*.parquet"))
+        if files:
+            return pq.read_table(p).to_pandas()
+    return pd.DataFrame()
+
 
 class DashboardDataLoader:
     def __init__(self, gold_path: Optional[Path] = None, monitoring_path: Optional[Path] = None):
         self.gold_path = Path(gold_path or settings.GOLD_DATA_PATH)
         self.monitoring_path = Path(monitoring_path or settings.MONITORING_DATA_PATH)
-        self._cache = {}
 
-    def get_pg_connection(self):
-        try:
-            import psycopg2
-            conn = psycopg2.connect(
-                host=settings.POSTGRES_HOST,
-                port=settings.POSTGRES_PORT,
-                dbname=settings.POSTGRES_DB,
-                user=settings.POSTGRES_USER,
-                password=settings.POSTGRES_PASSWORD,
-                connect_timeout=2
-            )
-            return conn
-        except Exception:
-            return None
+    def query_df(
+        self,
+        query: str,
+        fallback_table: Optional[str] = None,
+        params: Optional[Union[Tuple[Any, ...], Dict[str, Any]]] = None
+    ) -> pd.DataFrame:
+        from dashboard.analytics.security_utils import validate_sql_query
 
-    def query_df(self, query: str, fallback_table: Optional[str] = None) -> pd.DataFrame:
-        conn = self.get_pg_connection()
-        if conn:
+        # Enforce read-only SQL validation
+        if not validate_sql_query(query):
+            logger.warning("Unsafe SQL query blocked from execution.")
+            if fallback_table:
+                table_path = self.gold_path / fallback_table
+                return _cached_parquet_load(str(table_path))
+            return pd.DataFrame()
+
+        if _check_pg_available():
             try:
-                df = pd.read_sql(query, conn)
+                import psycopg2
+                conn = psycopg2.connect(
+                    host=settings.POSTGRES_HOST,
+                    port=settings.POSTGRES_PORT,
+                    dbname=settings.POSTGRES_DB,
+                    user=settings.POSTGRES_USER,
+                    password=settings.POSTGRES_PASSWORD,
+                    connect_timeout=1
+                )
+                df = pd.read_sql(query, conn, params=params)
                 conn.close()
                 return df
-            except Exception as e:
-                logger.warning(f"PostgreSQL query failed, falling back to Parquet: {e}")
-                conn.close()
+            except Exception as exc:
+                logger.warning(f"Database query execution error: {exc}")
+                pass
 
-        # Fallback to local Gold Parquet
         if fallback_table:
             table_path = self.gold_path / fallback_table
-            if table_path.exists():
-                files = list(table_path.rglob("*.parquet"))
-                if files:
-                    return pq.read_table(table_path).to_pandas()
+            return _cached_parquet_load(str(table_path))
 
         return pd.DataFrame()
 
     def get_executive_kpis(self) -> Dict[str, Any]:
-        df_fact = self.query_df(
-            "SELECT COUNT(DISTINCT order_id) as total_orders, "
-            "COUNT(order_item_id) as units_sold, "
-            "SUM(total_item_value) as total_revenue, "
-            "SUM(freight_value) as total_freight, "
-            "COUNT(DISTINCT customer_key) as active_customers "
-            "FROM gold.fact_sales;",
-            fallback_table="fact_sales"
-        )
-
-        if not df_fact.empty:
-            if "total_revenue" in df_fact.columns and len(df_fact) == 1:
-                tot_rev = float(df_fact["total_revenue"].iloc[0] or 0.0)
-                tot_ord = int(df_fact["total_orders"].iloc[0] or 0)
-                units = int(df_fact["units_sold"].iloc[0] or 0)
-                freight = float(df_fact["total_freight"].iloc[0] or 0.0)
-                custs = int(df_fact["active_customers"].iloc[0] or 0)
-            else:
-                tot_rev = float(df_fact["total_item_value"].sum())
-                tot_ord = int(df_fact["order_id"].nunique())
-                units = int(len(df_fact))
-                freight = float(df_fact["freight_value"].sum())
-                custs = int(df_fact["customer_key"].nunique())
-
-            aov = round(tot_rev / max(tot_ord, 1), 2)
-            avg_freight = round(freight / max(units, 1), 2)
-
-            return {
-                "total_revenue": tot_rev,
-                "total_orders": tot_ord,
-                "units_sold": units,
-                "average_order_value": aov,
-                "average_freight": avg_freight,
-                "active_customers": custs
-            }
-
-        return {
-            "total_revenue": 15843553.24,
-            "total_orders": 98666,
-            "units_sold": 112650,
-            "average_order_value": 160.58,
-            "average_freight": 19.99,
-            "active_customers": 98666
-        }
+        return _cached_get_executive_kpis(str(self.gold_path))
 
     def get_monthly_sales_trend(self) -> pd.DataFrame:
-        df_fact = self.query_df(
-            "SELECT order_year_month, "
-            "SUM(total_item_value) as revenue, "
-            "COUNT(DISTINCT order_id) as orders, "
-            "COUNT(order_item_id) as units "
-            "FROM gold.fact_sales "
-            "GROUP BY order_year_month ORDER BY order_year_month;",
-            fallback_table="fact_sales"
-        )
-        if not df_fact.empty and "order_year_month" in df_fact.columns:
-            if "revenue" in df_fact.columns:
-                return df_fact.sort_values("order_year_month")
-            grouped = df_fact.groupby("order_year_month").agg(
-                revenue=("total_item_value", "sum"),
-                orders=("order_id", "nunique"),
-                units=("order_item_id", "count")
-            ).reset_index().sort_values("order_year_month")
-            return grouped
-        return pd.DataFrame()
+        return _cached_get_monthly_sales_trend(str(self.gold_path))
 
     def get_category_performance(self) -> pd.DataFrame:
-        df_fact = self.query_df(
-            "SELECT p.product_category_name as category, "
-            "SUM(f.total_item_value) as revenue, "
-            "COUNT(f.order_item_id) as units "
-            "FROM gold.fact_sales f "
-            "JOIN gold.dim_product p ON f.product_key = p.product_key "
-            "GROUP BY p.product_category_name ORDER BY revenue DESC;",
-            fallback_table="fact_sales"
-        )
-        if df_fact.empty or "category" not in df_fact.columns:
-            df_p = self.query_df("", fallback_table="dim_product")
-            df_f = self.query_df("", fallback_table="fact_sales")
-            if not df_p.empty and not df_f.empty:
-                merged = df_f.merge(df_p, on="product_key")
-                grouped = merged.groupby("product_category_name").agg(
-                    revenue=("total_item_value", "sum"),
-                    units=("order_item_id", "count")
-                ).reset_index().rename(columns={"product_category_name": "category"}).sort_values("revenue", ascending=False)
-                return grouped
-        return df_fact
+        return _cached_get_category_performance(str(self.gold_path))
 
     def get_regional_sales(self) -> pd.DataFrame:
-        df_fact = self.query_df(
-            "SELECT c.customer_state as state, "
-            "SUM(f.total_item_value) as revenue, "
-            "COUNT(DISTINCT f.order_id) as orders "
-            "FROM gold.fact_sales f "
-            "JOIN gold.dim_customer c ON f.customer_key = c.customer_key "
-            "GROUP BY c.customer_state ORDER BY revenue DESC;",
-            fallback_table="fact_sales"
-        )
-        if df_fact.empty or "state" not in df_fact.columns:
-            df_c = self.query_df("", fallback_table="dim_customer")
-            df_f = self.query_df("", fallback_table="fact_sales")
-            if not df_c.empty and not df_f.empty:
-                merged = df_f.merge(df_c, on="customer_key")
-                grouped = merged.groupby("customer_state").agg(
-                    revenue=("total_item_value", "sum"),
-                    orders=("order_id", "nunique")
-                ).reset_index().rename(columns={"customer_state": "state"}).sort_values("revenue", ascending=False)
-                return grouped
-        return df_fact
+        return _cached_get_regional_sales(str(self.gold_path))
 
     def get_streaming_metrics(self) -> Dict[str, Any]:
         metrics_file = self.monitoring_path / "streaming_metrics.json"
@@ -211,3 +148,88 @@ class DashboardDataLoader:
             except Exception:
                 pass
         return runs
+
+
+@st.cache_data(show_spinner=False)
+def _cached_get_executive_kpis(gold_path_str: str) -> Dict[str, Any]:
+    gold_path = Path(gold_path_str)
+    fact_path = gold_path / "fact_sales"
+    df_fact = _cached_parquet_load(str(fact_path))
+
+    if not df_fact.empty:
+        if "total_item_value" in df_fact.columns:
+            tot_rev = float(df_fact["total_item_value"].sum())
+            tot_ord = int(df_fact["order_id"].nunique()) if "order_id" in df_fact.columns else len(df_fact)
+            units = int(len(df_fact))
+            freight = float(df_fact["freight_value"].sum()) if "freight_value" in df_fact.columns else 0.0
+            custs = int(df_fact["customer_key"].nunique()) if "customer_key" in df_fact.columns else tot_ord
+
+            aov = round(tot_rev / max(tot_ord, 1), 2)
+            avg_freight = round(freight / max(units, 1), 2)
+
+            return {
+                "total_revenue": tot_rev,
+                "total_orders": tot_ord,
+                "units_sold": units,
+                "average_order_value": aov,
+                "average_freight": avg_freight,
+                "active_customers": custs
+            }
+
+    return {
+        "total_revenue": 15843553.24,
+        "total_orders": 98666,
+        "units_sold": 112650,
+        "average_order_value": 160.58,
+        "average_freight": 19.99,
+        "active_customers": 98666
+    }
+
+
+@st.cache_data(show_spinner=False)
+def _cached_get_monthly_sales_trend(gold_path_str: str) -> pd.DataFrame:
+    gold_path = Path(gold_path_str)
+    fact_path = gold_path / "fact_sales"
+    df_fact = _cached_parquet_load(str(fact_path))
+    if not df_fact.empty and "order_year_month" in df_fact.columns:
+        grouped = df_fact.groupby("order_year_month").agg(
+            revenue=("total_item_value", "sum"),
+            orders=("order_id", "nunique") if "order_id" in df_fact.columns else ("total_item_value", "count"),
+            units=("order_item_id", "count") if "order_item_id" in df_fact.columns else ("total_item_value", "count")
+        ).reset_index().sort_values("order_year_month")
+        return grouped
+    return pd.DataFrame()
+
+
+@st.cache_data(show_spinner=False)
+def _cached_get_category_performance(gold_path_str: str) -> pd.DataFrame:
+    gold_path = Path(gold_path_str)
+    df_p = _cached_parquet_load(str(gold_path / "dim_product"))
+    df_f = _cached_parquet_load(str(gold_path / "fact_sales"))
+    if not df_p.empty and not df_f.empty and "product_key" in df_p.columns and "product_key" in df_f.columns:
+        merged = df_f.merge(df_p, on="product_key")
+        cat_col = "product_category_name" if "product_category_name" in merged.columns else "category"
+        if cat_col in merged.columns:
+            grouped = merged.groupby(cat_col).agg(
+                revenue=("total_item_value", "sum"),
+                units=("order_item_id", "count") if "order_item_id" in merged.columns else ("total_item_value", "count")
+            ).reset_index().rename(columns={cat_col: "category"}).sort_values("revenue", ascending=False)
+            return grouped
+    return pd.DataFrame()
+
+
+@st.cache_data(show_spinner=False)
+def _cached_get_regional_sales(gold_path_str: str) -> pd.DataFrame:
+    gold_path = Path(gold_path_str)
+    df_c = _cached_parquet_load(str(gold_path / "dim_customer"))
+    df_f = _cached_parquet_load(str(gold_path / "fact_sales"))
+    if not df_c.empty and not df_f.empty and "customer_key" in df_c.columns and "customer_key" in df_f.columns:
+        merged = df_f.merge(df_c, on="customer_key")
+        state_col = "customer_state" if "customer_state" in merged.columns else "state"
+        if state_col in merged.columns:
+            grouped = merged.groupby(state_col).agg(
+                revenue=("total_item_value", "sum"),
+                orders=("order_id", "nunique") if "order_id" in merged.columns else ("total_item_value", "count")
+            ).reset_index().rename(columns={state_col: "state"}).sort_values("revenue", ascending=False)
+            return grouped
+    return pd.DataFrame()

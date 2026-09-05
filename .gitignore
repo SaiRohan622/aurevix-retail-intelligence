@@ -1,9 +1,14 @@
 # Environment & Secrets
 .env
-.env.local
+.env.*
+!.env.example
 *.pem
 *.key
 *.secret
+*.credentials
+secrets/
+credentials/
+private/
 
 # Python Bytecode & Caches
 __pycache__/
@@ -36,7 +41,20 @@ data/monitoring/*
 !data/monitoring/.gitkeep
 data/checkpoints/*
 !data/checkpoints/.gitkeep
+data/streaming/*
+!data/streaming/.gitkeep
+data/user_workspaces/*
+!data/user_workspaces/.gitkeep
+data/workspaces/*
+!data/workspaces/.gitkeep
+data/auth/*
+!data/auth/.gitkeep
+data/security/*
+!data/security/.gitkeep
+!data/security/audit/.gitkeep
+sbom.json
 *.parquet
+*.crc
 *.csv
 *.gz
 *.tar

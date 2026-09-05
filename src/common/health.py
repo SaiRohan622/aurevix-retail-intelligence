@@ -58,7 +58,9 @@ class PlatformHealthChecker:
             latency = round((time.time() - start) * 1000, 2)
             return {"status": "HEALTHY", "latency_ms": latency, "target": f"{self.settings.POSTGRES_HOST}:{self.settings.POSTGRES_PORT}"}
         except Exception as e:
-            return {"status": "UNHEALTHY", "error": str(e), "target": f"{self.settings.POSTGRES_HOST}:{self.settings.POSTGRES_PORT}"}
+            from src.common.logger import sanitize_log_text
+            clean_err = sanitize_log_text(str(e))
+            return {"status": "UNHEALTHY", "error": clean_err, "target": f"{self.settings.POSTGRES_HOST}:{self.settings.POSTGRES_PORT}"}
 
     def check_kafka(self) -> Dict[str, Any]:
         """Validates Apache Kafka broker responsiveness."""
@@ -74,7 +76,9 @@ class PlatformHealthChecker:
             latency = round((time.time() - start) * 1000, 2)
             return {"status": "HEALTHY", "latency_ms": latency, "available_topics": len(topics)}
         except Exception as e:
-            return {"status": "UNAVAILABLE", "error": str(e), "target": self.settings.KAFKA_BOOTSTRAP_SERVERS}
+            from src.common.logger import sanitize_log_text
+            clean_err = sanitize_log_text(str(e))
+            return {"status": "UNAVAILABLE", "error": clean_err, "target": self.settings.KAFKA_BOOTSTRAP_SERVERS}
 
     def check_storage_lakehouse(self) -> Dict[str, Any]:
         """Verifies lakehouse Parquet partitions exist and are readable."""

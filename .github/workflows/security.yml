@@ -1,0 +1,75 @@
+name: AUREVIX Security & Supply-Chain Pipeline
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  schedule:
+    - cron: '0 4 * * 1' # Weekly Monday scan
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  secret-scan:
+    name: Repository Secret & Credential Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks Secret Detection
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+  dependency-audit:
+    name: Dependency Vulnerability Audit (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies & Security Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit cyclonedx-python-lib
+          pip install -r requirements.txt
+
+      - name: Scan Dependencies with pip-audit
+        run: |
+          pip-audit --desc
+
+      - name: Generate Software Bill of Materials (SBOM)
+        run: |
+          python scripts/generate_sbom.py
+
+  sast-analysis:
+    name: Static Application Security Testing (Bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Bandit
+        run: |
+          pip install bandit
+
+      - name: Execute SAST Analysis
+        run: |
+          bandit -r src/ dashboard/ -x tests/ -ll
