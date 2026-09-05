@@ -50,7 +50,7 @@ jobs:
           python-version: '3.12'
 
       - name: Set up Java 17 (for PySpark)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -58,7 +58,7 @@ jobs:
       - name: Install Platform Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pyarrow pyspark==4.2.0 kafka-python-ng dbt-core dbt-postgres psycopg2-binary streamlit plotly pandas
+          pip install -r requirements.txt
 
       - name: Validate dbt Models & Compilation
         run: |

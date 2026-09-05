@@ -21,6 +21,10 @@ def spark():
     spark_session.stop()
 
 
+bronze_has_data = any(Path("data/bronze").rglob("*.parquet")) if Path("data/bronze").exists() else False
+
+
+@pytest.mark.skipif(not bronze_has_data, reason="Bronze parquet dataset not present in CI environment")
 def test_silver_pipeline_execution(spark):
     """Verify that the complete Bronze -> Silver PySpark pipeline runs successfully."""
     pipeline = SparkBronzeToSilverPipeline(spark=spark)
@@ -36,6 +40,7 @@ def test_silver_pipeline_execution(spark):
     assert report_file.is_file()
 
 
+@pytest.mark.skipif(not bronze_has_data, reason="Bronze parquet dataset not present in CI environment")
 def test_silver_parquet_snappy_compression(spark):
     """Verify all generated Silver tables are Snappy-compressed Parquet datasets."""
     silver_dir = Path("data/silver")
@@ -62,6 +67,7 @@ def test_silver_parquet_snappy_compression(spark):
         assert compression == "SNAPPY", f"Expected SNAPPY compression in {ent}, found {compression}"
 
 
+@pytest.mark.skipif(not bronze_has_data, reason="Bronze parquet dataset not present in CI environment")
 def test_silver_idempotency(spark):
     """Verify that running the Silver pipeline twice produces identical row counts."""
     pipeline = SparkBronzeToSilverPipeline(spark=spark)
