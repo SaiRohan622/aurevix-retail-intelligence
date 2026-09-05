@@ -12,6 +12,12 @@ from airflow.dags.aurevix_batch_pipeline import (
 )
 
 
+from pathlib import Path
+
+raw_has_data = (Path("data/raw") / "olist_orders_dataset.csv").exists()
+
+
+@pytest.mark.skipif(not raw_has_data, reason="Raw Olist CSV datasets not present in CI environment")
 def test_airflow_batch_task_sequence_execution():
     """Verify sequential execution of all validation and loading tasks in Airflow DAG."""
     r1 = task_validate_raw_data()

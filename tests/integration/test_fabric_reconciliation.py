@@ -5,9 +5,13 @@ Reconciles Gold Parquet data against the formal Fabric Cloud Data Contract.
 
 import json
 from pathlib import Path
+import pytest
 from src.fabric.fabric_sync import FabricLakehouseExporter
 
+gold_has_data = any((Path("data/gold") / "fact_sales").rglob("*.parquet")) if Path("data/gold").exists() else False
 
+
+@pytest.mark.skipif(not gold_has_data, reason="Gold parquet dataset not present in CI environment")
 def test_gold_to_fabric_contract_compatibility():
     exporter = FabricLakehouseExporter()
     compat = exporter.validate_gold_contract_compatibility()
@@ -19,6 +23,7 @@ def test_gold_to_fabric_contract_compatibility():
         assert compat["tables"][table_name]["status"] == "COMPATIBLE"
 
 
+@pytest.mark.skipif(not gold_has_data, reason="Gold parquet dataset not present in CI environment")
 def test_gold_to_fabric_revenue_and_grain_reconciliation():
     exporter = FabricLakehouseExporter()
     metrics = exporter.compute_contract_metrics()
@@ -31,6 +36,7 @@ def test_gold_to_fabric_revenue_and_grain_reconciliation():
     assert m["average_order_value"] == 160.58
 
 
+@pytest.mark.skipif(not gold_has_data, reason="Gold parquet dataset not present in CI environment")
 def test_fabric_deployment_manifest_generation(tmp_path):
     exporter = FabricLakehouseExporter(output_dir=tmp_path)
     manifest_path = exporter.generate_fabric_manifest()

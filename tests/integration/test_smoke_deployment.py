@@ -4,11 +4,15 @@ Validates end-to-end availability of configuration, health probes,
 lakehouse Parquet tables, and dashboard queries.
 """
 
+import pytest
 from src.config.settings import settings
 from src.common.health import PlatformHealthChecker
 from dashboard.components.data_loader import DashboardDataLoader
 
+lakehouse_ready = (settings.GOLD_DATA_PATH / "fact_sales").exists()
 
+
+@pytest.mark.skipif(not lakehouse_ready, reason="Lakehouse partitions not present in CI environment")
 def test_deployment_smoke_sequence():
     # 1. Config Check
     assert settings.RAW_DATA_PATH.exists()
