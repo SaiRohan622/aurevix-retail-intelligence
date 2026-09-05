@@ -16,18 +16,30 @@ def test_airflow_batch_dag_defaults():
     assert default_args["retry_delay"].total_seconds() == 300
 
 
+@pytest.mark.skipif(
+    not Path("data/raw/olist_orders_dataset.csv").exists(),
+    reason="Raw datasets not present in environment",
+)
 def test_airflow_raw_validation_task():
     """Verify task_validate_raw_data passes against existing raw files."""
     res = task_validate_raw_data()
     assert res == "Raw data validated successfully"
 
 
+@pytest.mark.skipif(
+    not Path("data/raw/olist_orders_dataset.csv").exists(),
+    reason="Raw datasets not present in environment",
+)
 def test_airflow_bronze_validation_task():
     """Verify task_bronze_validation parses manifest.json."""
     res = task_bronze_validation()
     assert res == "Bronze validation passed"
 
 
+@pytest.mark.skipif(
+    not Path("data/raw/olist_orders_dataset.csv").exists(),
+    reason="Raw datasets not present in environment",
+)
 def test_airflow_data_quality_audit_task():
     """Verify task_audit_all_layers generates quality audit report."""
     rep = task_audit_all_layers()

@@ -31,14 +31,21 @@ data/raw/*
 !data/raw/.gitkeep
 data/bronze/*
 !data/bronze/.gitkeep
+!data/bronze/bronze_orders/
+!data/bronze/bronze_orders/.gitkeep
 data/silver/*
 !data/silver/.gitkeep
+!data/silver/silver_orders/
+!data/silver/silver_orders/.gitkeep
 data/gold/*
 !data/gold/.gitkeep
+!data/gold/fact_sales/
+!data/gold/fact_sales/.gitkeep
 data/quarantine/*
 !data/quarantine/.gitkeep
 data/monitoring/*
 !data/monitoring/.gitkeep
+!data/monitoring/*.json
 data/checkpoints/*
 !data/checkpoints/.gitkeep
 data/streaming/*
@@ -56,11 +63,14 @@ sbom.json
 *.parquet
 *.crc
 *.csv
+!data/samples/*.csv
+!tests/data/*.csv
 *.gz
 *.tar
 *.zip
 
 # Spark & Hadoop Local Caches
+_SUCCESS
 metastore_db/
 derby.log
 checkpoint/

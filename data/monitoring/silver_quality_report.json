@@ -1,0 +1,77 @@
+{
+  "pipeline": "aurevix_bronze_to_silver_batch",
+  "batch_id": "batch_1788591090",
+  "engine": "PySpark 4.2.0",
+  "execution_timestamp": "2026-09-05T06:57:46Z",
+  "duration_seconds": 129.639,
+  "total_entities_processed": 9,
+  "total_input_rows": 1550922,
+  "total_valid_rows": 1550893,
+  "total_quarantined_rows": 29,
+  "overall_quarantine_rate_pct": 0.0019,
+  "entities": [
+    {
+      "entity": "silver_category_translation",
+      "input_count": 71,
+      "valid_count": 71,
+      "quarantined_count": 0,
+      "quarantine_pct": 0.0
+    },
+    {
+      "entity": "silver_customers",
+      "input_count": 99441,
+      "valid_count": 99441,
+      "quarantined_count": 0,
+      "quarantine_pct": 0.0
+    },
+    {
+      "entity": "silver_sellers",
+      "input_count": 3095,
+      "valid_count": 3095,
+      "quarantined_count": 0,
+      "quarantine_pct": 0.0
+    },
+    {
+      "entity": "silver_geolocation",
+      "input_count": 1000163,
+      "valid_count": 1000134,
+      "quarantined_count": 29,
+      "quarantine_pct": 0.0
+    },
+    {
+      "entity": "silver_products",
+      "input_count": 32951,
+      "valid_count": 32951,
+      "quarantined_count": 0,
+      "quarantine_pct": 0.0
+    },
+    {
+      "entity": "silver_orders",
+      "input_count": 99441,
+      "valid_count": 99441,
+      "quarantined_count": 0,
+      "quarantine_pct": 0.0
+    },
+    {
+      "entity": "silver_order_items",
+      "input_count": 112650,
+      "valid_count": 112650,
+      "quarantined_count": 0,
+      "quarantine_pct": 0.0
+    },
+    {
+      "entity": "silver_order_payments",
+      "input_count": 103886,
+      "valid_count": 103886,
+      "quarantined_count": 0,
+      "quarantine_pct": 0.0
+    },
+    {
+      "entity": "silver_order_reviews",
+      "input_count": 99224,
+      "valid_count": 99224,
+      "quarantined_count": 0,
+      "quarantine_pct": 0.0
+    }
+  ]
+}

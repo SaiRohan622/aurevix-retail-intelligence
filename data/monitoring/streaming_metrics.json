@@ -1,0 +1,20 @@
+{
+  "pipeline": "aurevix_spark_structured_streaming",
+  "batch_id": "batch_101",
+  "execution_timestamp": "2026-09-05T06:47:46Z",
+  "duration_seconds": 681.246,
+  "metrics": {
+    "input_events_count": 110,
+    "valid_events_count": 100,
+    "quarantined_events_count": 0,
+    "duplicate_events_filtered": 10,
+    "watermark_delay_minutes": 10
+  },
+  "realtime_kpis": {
+    "total_gross_revenue": 15838.43,
+    "total_unique_orders": 94,
+    "total_units_sold": 100,
+    "average_order_value_aov": 168.49
+  },
+  "status": "SUCCESS"
+}

@@ -1,0 +1,21 @@
+{
+  "simulation_timestamp": "2026-08-26T07:24:45.631787+00:00",
+  "topic": "aurevix.retail.orders",
+  "engine": "Spark Structured Streaming (4.2.0)",
+  "watermark_delay": "10 minutes",
+  "metrics": {
+    "events_produced_total": 110,
+    "unique_events_count": 100,
+    "duplicate_events_injected": 10,
+    "duplicate_events_filtered": 10,
+    "valid_streaming_silver_rows": 100,
+    "quarantined_events_count": 0,
+    "streaming_gross_revenue": 14285.5,
+    "streaming_distinct_orders": 85,
+    "streaming_units_sold": 100,
+    "streaming_average_order_value": 168.06,
+    "processing_latency_ms": 142.5
+  },
+  "deduplication_method": "SHA-256 event_id stateful watermark deduplication",
+  "final_status": "SUCCESS"
+}

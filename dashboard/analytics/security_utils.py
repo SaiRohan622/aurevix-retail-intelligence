@@ -81,9 +81,11 @@ def sanitize_upload_filename(filename: str) -> str:
     # 2. Extract basename, stripping drive letters (e.g. C:, D:) and UNC paths (\\\\server\\share)
     cleaned = re.sub(r'^[a-zA-Z]:[/\\]*', '', cleaned)
     cleaned = re.sub(r'^[/\\]+', '', cleaned)
+    cleaned = cleaned.replace('\\', '/')
 
-    # Use Path.name to get basename only
-    base = Path(cleaned).name
+    # Use PurePosixPath to get basename cross-platform (handles Windows & Linux paths)
+    from pathlib import PurePosixPath
+    base = PurePosixPath(cleaned).name
 
     # 3. Strip directory traversal sequences (../ and ..\)
     base = base.replace('/', '').replace('\\', '').replace('..', '')

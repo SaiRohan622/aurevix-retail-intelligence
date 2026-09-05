@@ -1,0 +1,46 @@
+{
+  "pipeline": "aurevix_silver_to_gold_batch",
+  "batch_id": "gold_batch_1788590053",
+  "engine": "PySpark 4.2.0",
+  "execution_timestamp": "2026-09-05T06:35:40Z",
+  "duration_seconds": 41.526,
+  "dimensions": {
+    "dim_date_rows": 1827,
+    "dim_location_rows": 19019,
+    "dim_customer_rows": 99441,
+    "dim_product_rows": 32951,
+    "dim_seller_rows": 3095
+  },
+  "fact_sales": {
+    "entity": "fact_sales",
+    "fact_row_count": 112650,
+    "distinct_fact_keys": 112650,
+    "grain_violations_count": 0,
+    "total_orders_count": 98666,
+    "total_units_sold": 112650,
+    "total_item_revenue": 13591643.7,
+    "total_freight_revenue": 2251909.54,
+    "total_gross_revenue": 15843553.24,
+    "average_order_value_aov": 160.58,
+    "orphan_customer_keys": 0,
+    "orphan_product_keys": 0,
+    "orphan_seller_keys": 0
+  },
+  "revenue_reconciliation": {
+    "silver_source_item_revenue": 13591643.7,
+    "silver_source_freight_revenue": 2251909.54,
+    "silver_source_total_revenue": 15843553.24,
+    "gold_fact_item_revenue": 13591643.7,
+    "gold_fact_total_revenue": 15843553.24,
+    "revenue_variance": 0.0,
+    "reconciliation_status": "EXACT_MATCH"
+  },
+  "business_kpis": {
+    "total_gross_revenue": 15843553.24,
+    "total_orders": 98666,
+    "units_sold": 112650,
+    "average_order_value_aov": 160.58,
+    "average_freight_per_item": 19.99
+  },
+  "status": "SUCCESS"
+}

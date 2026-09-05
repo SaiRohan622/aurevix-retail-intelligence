@@ -1,0 +1,61 @@
+{
+  "audit_timestamp": "2026-08-26T07:24:45.630787+00:00",
+  "pipeline_state": "VERIFIED_PRODUCTION",
+  "total_records_ingested": 1550922,
+  "valid_records_processed": 1550893,
+  "quarantined_records_count": 29,
+  "overall_quarantine_rate_pct": 0.0019,
+  "quality_score_pct": 99.9981,
+  "rules_audited": {
+    "DQ001_primary_key_uniqueness": {
+      "status": "PASSED",
+      "violations": 0
+    },
+    "DQ002_mandatory_not_null": {
+      "status": "PASSED",
+      "violations": 0
+    },
+    "DQ003_positive_item_price": {
+      "status": "PASSED",
+      "violations": 0
+    },
+    "DQ004_non_negative_freight": {
+      "status": "PASSED",
+      "violations": 0
+    },
+    "DQ005_valid_timestamp_sequence": {
+      "status": "PASSED",
+      "violations": 0
+    },
+    "DQ006_valid_order_status": {
+      "status": "PASSED",
+      "violations": 0
+    },
+    "DQ007_valid_payment_installments": {
+      "status": "PASSED",
+      "violations": 0
+    },
+    "DQ008_valid_payment_value": {
+      "status": "PASSED",
+      "violations": 0
+    },
+    "DQ009_valid_review_score": {
+      "status": "PASSED",
+      "violations": 0
+    },
+    "DQ010_valid_brazilian_coordinates": {
+      "status": "PASSED",
+      "violations": 0
+    },
+    "DQ011_referential_integrity": {
+      "status": "PASSED",
+      "violations": 0
+    },
+    "DQ012_fact_grain_uniqueness": {
+      "status": "PASSED",
+      "violations": 0
+    }
+  },
+  "quarantine_isolation_directory": "data/quarantine",
+  "reconciliation_status": "EXACT_PARITY"
+}

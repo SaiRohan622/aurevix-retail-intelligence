@@ -1,0 +1,31 @@
+{
+  "ready": true,
+  "status": "READY",
+  "timestamp": "2026-08-26T07:24:52.339741+00:00",
+  "components": {
+    "liveness": {
+      "status": "UP",
+      "timestamp": "2026-08-26T07:24:45.645169+00:00",
+      "runtime": {
+        "python_version": "3.12.10",
+        "environment": "development"
+      }
+    },
+    "storage": {
+      "status": "HEALTHY",
+      "gold_ready": true,
+      "silver_ready": true,
+      "bronze_ready": true
+    },
+    "postgres": {
+      "status": "UNHEALTHY",
+      "error": "connection to server at \"localhost\" (::1), port 5432 failed: timeout expired\nconnection to server at \"localhost\" (127.0.0.1), port 5432 failed: timeout expired\n",
+      "target": "localhost:5432"
+    },
+    "kafka": {
+      "status": "UNAVAILABLE",
+      "error": "NoBrokersAvailable",
+      "target": "localhost:9092"
+    }
+  }
+}
